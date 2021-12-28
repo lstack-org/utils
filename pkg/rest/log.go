@@ -10,6 +10,17 @@ import (
 	"time"
 )
 
+const (
+	green   = "\033[97;42m"
+	white   = "\033[90;47m"
+	yellow  = "\033[90;43m"
+	red     = "\033[97;41m"
+	blue    = "\033[97;44m"
+	magenta = "\033[97;45m"
+	cyan    = "\033[97;46m"
+	reset   = "\033[0m"
+)
+
 type logTrace struct {
 	title                 string
 	delegatedRoundTripper http.RoundTripper
@@ -41,6 +52,10 @@ func (l *logTrace) RoundTrip(request *http.Request) (*http.Response, error) {
 			statusCode      = response.StatusCode
 			responseBody, _ = ioutil.ReadAll(response.Body)
 			responseBodyStr = string(responseBody)
+			colorP          = colorParams{
+				StatusCode: statusCode,
+				Method:     method,
+			}
 		)
 		response.Body = ioutil.NopCloser(bytes.NewReader(responseBody))
 
@@ -48,13 +63,19 @@ func (l *logTrace) RoundTrip(request *http.Request) (*http.Response, error) {
 			path = path + "?" + raw
 		}
 
-		log = fmt.Sprintf("[%s] %v | %v | %13v | %15s | %-7s %#v\n",
+		var (
+			statusColor = colorP.StatusCodeColor()
+			methodColor = colorP.MethodColor()
+			resetColor  = colorP.ResetColor()
+		)
+
+		log = fmt.Sprintf("[%s] %v | %s %3d %s | %13v | %15s |%s %-7s %s %#v\n",
 			strings.ToUpper(l.title),
 			start.Format("2006/01/02 - 15:04:05"),
-			statusCode,
+			statusColor, statusCode, resetColor,
 			latency,
 			host,
-			method,
+			methodColor, method, resetColor,
 			path,
 		)
 
@@ -89,4 +110,51 @@ func (l *logTrace) RoundTrip(request *http.Request) (*http.Response, error) {
 	}
 
 	return response, err
+}
+
+type colorParams struct {
+	StatusCode int
+	Method     string
+}
+
+func (p *colorParams) StatusCodeColor() string {
+	code := p.StatusCode
+
+	switch {
+	case code >= http.StatusOK && code < http.StatusMultipleChoices:
+		return green
+	case code >= http.StatusMultipleChoices && code < http.StatusBadRequest:
+		return white
+	case code >= http.StatusBadRequest && code < http.StatusInternalServerError:
+		return yellow
+	default:
+		return red
+	}
+}
+
+func (p *colorParams) MethodColor() string {
+	method := p.Method
+
+	switch method {
+	case http.MethodGet:
+		return blue
+	case http.MethodPost:
+		return cyan
+	case http.MethodPut:
+		return yellow
+	case http.MethodDelete:
+		return red
+	case http.MethodPatch:
+		return green
+	case http.MethodHead:
+		return magenta
+	case http.MethodOptions:
+		return white
+	default:
+		return reset
+	}
+}
+
+func (p *colorParams) ResetColor() string {
+	return reset
 }
