@@ -21,6 +21,18 @@ const (
 	reset   = "\033[0m"
 )
 
+var (
+	logLevel     klog.Level = 7
+	baseLogLevel klog.Level = 6
+)
+
+func NewLogTrace(title string, delegatedRoundTripper http.RoundTripper) http.RoundTripper {
+	return &logTrace{
+		title:                 title,
+		delegatedRoundTripper: delegatedRoundTripper,
+	}
+}
+
 type logTrace struct {
 	title                 string
 	delegatedRoundTripper http.RoundTripper
@@ -80,31 +92,33 @@ func (l *logTrace) RoundTrip(request *http.Request) (*http.Response, error) {
 		)
 
 		if request.Header != nil {
-			if klog.V(7).Enabled() {
+			if klog.V(logLevel).Enabled() {
 				log = fmt.Sprintf("%sRequest Header: %v\n", log, request.Header)
 			}
 		}
 
 		if requestBodyStr != "" {
-			if klog.V(7).Enabled() {
+			if klog.V(logLevel).Enabled() {
+				requestBodyStr = strings.Replace(requestBodyStr, "\n", "", -1)
 				log = fmt.Sprintf("%sRequest Body: %s\n", log, requestBodyStr)
 			}
 		}
 
 		resHeader := response.Header
 		if resHeader != nil {
-			if klog.V(7).Enabled() {
+			if klog.V(logLevel).Enabled() {
 				log = fmt.Sprintf("%sResponse Header: %v\n", log, resHeader)
 			}
 		}
 
 		if responseBodyStr != "" {
-			if klog.V(7).Enabled() {
+			if klog.V(logLevel).Enabled() {
+				responseBodyStr = strings.Replace(responseBodyStr, "\n", "", -1)
 				log = fmt.Sprintf("%sResponse Body: %s\n", log, responseBodyStr)
 			}
 		}
 
-		if klog.V(6).Enabled() {
+		if klog.V(baseLogLevel).Enabled() {
 			fmt.Print(log)
 		}
 	}
