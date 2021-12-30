@@ -26,6 +26,11 @@ var (
 	baseLogLevel klog.Level = 6
 )
 
+func SetLogLevel(bLevel, level klog.Level) {
+	baseLogLevel = bLevel
+	logLevel = level
+}
+
 func NewLogTrace(title string, delegatedRoundTripper http.RoundTripper) http.RoundTripper {
 	return &logTrace{
 		title:                 title,

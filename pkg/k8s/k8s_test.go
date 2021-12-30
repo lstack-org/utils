@@ -38,6 +38,7 @@ var (
 )
 
 func TestClient(t *testing.T) {
+	rest.SetLogLevel(0,0)
 	clientConfig, err := clientcmd.NewClientConfigFromBytes([]byte(kubeConfig))
 	if err != nil {
 		t.Fatal(err)
