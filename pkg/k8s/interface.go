@@ -29,7 +29,7 @@ type ResourceInterface interface {
 	Patch(name string, pt types.PatchType, body, rcv interface{}, options metav1.PatchOptions) error
 	//Apply 用于创建或更新资源，当资源存在时，执行更新，不存在时，执行创建,body不能为空，rvc可以为空
 	Apply(body, rcv interface{}, applyCheckFncs ...ApplyCheckFnc) error
-	//CreateIfNotExist 用于创建指定资源，当资源已存在时，会忽略已存在错误
+	//CreateIfNotExist 用于创建指定资源，当资源已存在时，直接返回该资源，存到rcv中，不存在时，会执行创建，创建结果也会存到rcv中
 	CreateIfNotExist(body, rcv interface{}) error
 }
 

@@ -253,7 +253,7 @@ func (d *dynamicClient) CreateIfNotExist(body, rcv interface{}) error {
 	if err != nil {
 		return err
 	}
-	err = d.Get(bodyObj.GetName(), map[string]interface{}{}, v1.GetOptions{})
+	err = d.Get(bodyObj.GetName(), rcv, v1.GetOptions{})
 	if err == nil {
 		return nil
 	}
