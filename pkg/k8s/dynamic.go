@@ -36,10 +36,6 @@ func init() {
 	metav1.AddToGroupVersion(deleteScheme, versionV1)
 }
 
-func NewFakeClient(restConfig *rest.Config, customize *http.Client, fns ...ReqTransformFn) (Interface, error) {
-	return newClient(restConfig, customize, fns...)
-}
-
 func NewClient(restConfig *rest.Config, fns ...ReqTransformFn) (Interface, error) {
 	return newClient(restConfig, nil, fns...)
 }
@@ -98,6 +94,9 @@ type dynamicClient struct {
 }
 
 func (d *dynamicClient) Namespace(namespace string) ResourceInterface {
+	if len(namespace) == 0 {
+		namespace = "default"
+	}
 	d.namespace = namespace
 	return d
 }
