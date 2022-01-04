@@ -93,6 +93,11 @@ type dynamicClient struct {
 	transformRequestFns []ReqTransformFn
 }
 
+func (d *dynamicClient) Transform(reqFns ...ReqTransformFn) NamespaceableResourceInterface {
+	d.transformRequestFns = append(d.transformRequestFns, reqFns...)
+	return d
+}
+
 func (d *dynamicClient) Namespace(namespace string) ResourceInterface {
 	if len(namespace) == 0 {
 		namespace = "default"
