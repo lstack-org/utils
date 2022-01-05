@@ -34,6 +34,7 @@ type ResourceInterface interface {
 }
 
 type NamespaceableResourceInterface interface {
+	Transform(...ReqTransformFn) NamespaceableResourceInterface
 	Namespace(string) ResourceInterface
 	ResourceInterface
 }
