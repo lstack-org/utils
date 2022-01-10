@@ -68,8 +68,10 @@ func (b *BatchTasks) AwaitWithTimeout(timeout time.Duration) (BatchRes, error) {
 	withTimeoutCtx, cancelFunc := context.WithTimeout(context.Background(), timeout)
 	defer cancelFunc()
 	batchRes, err := b.Await(withTimeoutCtx)
-	return batchRes, errors.NewAggregate([]error{err, withTimeoutCtx.Err()})
-
+	if timeoutErr := withTimeoutCtx.Err(); timeoutErr != nil {
+		return batchRes, timeoutErr
+	}
+	return batchRes, err
 }
 
 //Exec 以goroutine的方式运行BatchTaskAction函数
