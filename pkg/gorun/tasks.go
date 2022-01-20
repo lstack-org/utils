@@ -76,8 +76,8 @@ func (b *BatchTasks) AwaitWithTimeout(timeout time.Duration) (BatchRes, error) {
 
 //Exec 以goroutine的方式运行BatchTaskAction函数
 func (b *BatchTasks) Exec(ctx context.Context) {
+	b.BatchContext = NewBatchContext(ctx)
 	if len(b.actions) > 0 {
-		b.BatchContext = NewBatchContext(ctx)
 		actionSignalFunc := func(ctx BatchContext, act BatchTaskAction, actionOverSignal chan bool) {
 			defer func() {
 				if panicI := recover(); panicI != nil {
