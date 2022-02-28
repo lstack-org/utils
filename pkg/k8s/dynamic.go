@@ -158,7 +158,7 @@ func (d *dynamicClient) DeleteCollection(listOptions v1.ListOptions, options *v1
 	return d.request(d.tryTransformRequest(d.restC.
 		Delete().
 		AbsPath(d.makeURLSegments("")...).
-		Body(&deleteOptionsByte).
+		Body(deleteOptionsByte).
 		SpecificallyVersionedParams(&listOptions, dynamicParameterCodec, versionV1)), nil)
 }
 
