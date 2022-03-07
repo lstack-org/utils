@@ -6,7 +6,7 @@ Implementation of Java stream API by go language
 ```
 import (
 	"fmt"
-	"github.com/wujiangfa-xlauncher/stream-for-go"
+	"github.com/lstack-org/utils/stream"
 )
 
 func main() {
