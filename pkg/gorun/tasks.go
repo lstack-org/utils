@@ -2,10 +2,11 @@ package gorun
 
 import (
 	"context"
-	"k8s.io/apimachinery/pkg/util/errors"
-	"k8s.io/klog/v2"
 	"sync"
 	"time"
+
+	"k8s.io/apimachinery/pkg/util/errors"
+	"k8s.io/klog/v2"
 )
 
 type BatchWait interface {

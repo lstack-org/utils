@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"k8s.io/klog/v2"
 	"net/http"
 	"strings"
 	"time"
+
+	"k8s.io/klog/v2"
 )
 
 const (
@@ -65,7 +66,7 @@ func (l *logTrace) RoundTrip(request *http.Request) (*http.Response, error) {
 
 	if response != nil {
 		var (
-			latency         = time.Now().Sub(start)
+			latency         = time.Since(start)
 			statusCode      = response.StatusCode
 			responseBody, _ = ioutil.ReadAll(response.Body)
 			responseBodyStr = string(responseBody)

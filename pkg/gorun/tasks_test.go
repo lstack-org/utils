@@ -3,11 +3,12 @@ package gorun
 import (
 	"context"
 	"fmt"
-	"github.com/lstack-org/utils/pkg/rest"
-	"k8s.io/klog/v2"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/lstack-org/utils/pkg/rest"
+	"k8s.io/klog/v2"
 )
 
 func TestBatchTasks_Await(t *testing.T) {
@@ -118,7 +119,7 @@ func hello(w http.ResponseWriter, req *http.Request) {
 
 func setupHttp() {
 	http.HandleFunc("/hello", hello)
-	http.ListenAndServe(":80", nil)
+	_ = http.ListenAndServe(":80", nil)
 }
 
 func TestPanic(t *testing.T) {
@@ -136,5 +137,4 @@ func TestPanic(t *testing.T) {
 	}, func(ctx BatchContext) {
 		time.Sleep(time.Second)
 	}).Await(context.TODO())
-
 }

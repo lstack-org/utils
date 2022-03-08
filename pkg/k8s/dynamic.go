@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/lstack-org/utils/pkg/gorun"
 	local "github.com/lstack-org/utils/pkg/rest"
 	core "k8s.io/api/core/v1"
@@ -18,8 +21,6 @@ import (
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"k8s.io/klog/v2"
-	"net/http"
-	"time"
 )
 
 var (
@@ -189,7 +190,7 @@ func (d *dynamicClient) Patch(name string, pt types.PatchType, body, rcv interfa
 	}
 	return d.request(d.tryTransformRequest(d.restC.
 		Patch(pt).
-		AbsPath(append(d.makeURLSegments(name))...).
+		AbsPath(d.makeURLSegments(name)...).
 		Body(bodyBytes).
 		SpecificallyVersionedParams(&options, dynamicParameterCodec, versionV1)), rcv)
 }
@@ -214,7 +215,7 @@ func (d *dynamicClient) Apply(body, rcv interface{}, applyCheckFncs ...ApplyChec
 			}
 		} else {
 			for _, fnc := range applyCheckFncs {
-				if err := fnc(&objectMeta); err != nil {
+				if err = fnc(&objectMeta); err != nil {
 					until.ErrorBreak(err)
 					return
 				}
@@ -224,7 +225,7 @@ func (d *dynamicClient) Apply(body, rcv interface{}, applyCheckFncs ...ApplyChec
 			//对应的资源存在，保存，用于后续判断是否要创建
 			until.ItemSave(objectMeta)
 			//执行update
-			err := d.Update(bodyObj, rcv, v1.UpdateOptions{})
+			err = d.Update(bodyObj, rcv, v1.UpdateOptions{})
 			if err != nil {
 				//若update返回冲突，则执行重试
 				if errors.IsConflict(err) {
