@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/url"
+	"time"
+
 	"k8s.io/apimachinery/pkg/conversion/queryparams"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/util/flowcontrol"
-	"net/url"
-	"time"
 )
 
 type Request struct {
@@ -118,7 +119,7 @@ func (r *Request) DoRaw(ctx context.Context) ([]byte, error) {
 	return r.decorator.DoRaw(ctx)
 }
 
-func (r *Request) DoInto(ctx context.Context,into interface{}) error {
+func (r *Request) DoInto(ctx context.Context, into interface{}) error {
 	resp, err := r.DoRaw(ctx)
 	if err != nil {
 		return err

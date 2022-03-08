@@ -3,11 +3,12 @@ package k8s
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
+	"strings"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/client-go/rest"
-	"reflect"
-	"strings"
 )
 
 //AsTable 用于指定k8s返回的数据格式为table格式

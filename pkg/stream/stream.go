@@ -201,7 +201,6 @@ func (p *pipeline) FlatMap(function Function) Stream {
 	t.parallel = p.sourceStage.parallel
 	t.sourceStage = t
 	return t
-
 }
 
 func (p *pipeline) FindFirst(predicate Predicate) interface{} {

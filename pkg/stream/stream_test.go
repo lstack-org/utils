@@ -131,7 +131,6 @@ func TestLimit(t *testing.T) {
 	New(ints).Limit(5).ForEach(func(v interface{}) {
 		fmt.Println(v)
 	})
-
 }
 
 func TestDistinct(t *testing.T) {
@@ -209,7 +208,6 @@ func TestAllMatch(t *testing.T) {
 		return v.(int) > 0
 	})
 	fmt.Println(allMatch)
-
 }
 
 func TestAnyMatch(t *testing.T) {
@@ -335,7 +333,6 @@ func TestToSlice(t *testing.T) {
 	var ints2 []int
 	New(ints1).ToSlice(&ints2)
 	fmt.Println(ints2)
-
 }
 
 func TestGroup(t *testing.T) {

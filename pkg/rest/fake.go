@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"io"
 	"io/ioutil"
-	"k8s.io/apimachinery/pkg/runtime"
 	"net/http"
+
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 func DefaultHeader() http.Header {

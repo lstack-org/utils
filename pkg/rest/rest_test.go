@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"k8s.io/client-go/rest/fake"
 	"net/http"
 	"testing"
+
+	"k8s.io/client-go/rest/fake"
 )
 
 var (
