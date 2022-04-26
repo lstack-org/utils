@@ -282,7 +282,10 @@ func (d *dynamicClient) request(request *rest.Request, rcv interface{}) error {
 	if err != nil {
 		status := metav1.Status{}
 		_ = json.Unmarshal(result, &status)
-		return &Err{status}
+		if statusError, ok := err.(*errors.StatusError); ok {
+			status.Reason = statusError.Status().Reason
+		}
+		return &Err{&errors.StatusError{ErrStatus: status}}
 	}
 
 	if rcv != nil {
