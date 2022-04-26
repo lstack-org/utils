@@ -280,7 +280,9 @@ func (d *dynamicClient) tryTransformRequest(req *rest.Request) *rest.Request {
 func (d *dynamicClient) request(request *rest.Request, rcv interface{}) error {
 	result, err := request.DoRaw(context.TODO())
 	if err != nil {
-		return err
+		status := metav1.Status{}
+		_ = json.Unmarshal(result, &status)
+		return &Err{status}
 	}
 
 	if rcv != nil {
