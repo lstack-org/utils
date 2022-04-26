@@ -3,6 +3,7 @@ package k8s
 import (
 	"github.com/lstack-org/utils/pkg/rest"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -152,4 +153,9 @@ func TestTableClient(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(intoData)
+
+	err = client.Resource(svcGroupVersionResource).Get("sdsd", nil, metav1.GetOptions{})
+	t.Log(err) //code: 404,reason: NotFound,message: the server could not find the requested resource
+
+	t.Log(errors.IsNotFound(err)) //true
 }
