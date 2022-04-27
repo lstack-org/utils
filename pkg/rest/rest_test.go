@@ -27,7 +27,7 @@ func init() {
 			return &http.Response{StatusCode: http.StatusOK, Header: DefaultHeader(), Body: StringBody(getRes)}, nil
 		case path == "/n/t/m/d" && method == "POST":
 			bytes, _ := ioutil.ReadAll(request.Body)
-			return &http.Response{StatusCode: http.StatusOK, Header: DefaultHeader(), Body: BytesBody(bytes)}, nil
+			return &http.Response{StatusCode: 404, Header: DefaultHeader(), Body: BytesBody(bytes)}, nil
 		default:
 			panic("unexpected request")
 		}
