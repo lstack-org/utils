@@ -116,7 +116,8 @@ func (r *Request) DoRaw(ctx context.Context) ([]byte, error) {
 	if r.err != nil {
 		return nil, r.err
 	}
-	return r.decorator.DoRaw(ctx)
+	bytes, err := r.decorator.DoRaw(ctx)
+	return bytes, ErrorConvert(bytes, err)
 }
 
 func (r *Request) DoInto(ctx context.Context, into interface{}) error {
