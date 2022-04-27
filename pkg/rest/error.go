@@ -26,6 +26,13 @@ func ErrorConvert(result []byte, err error) error {
 	} else {
 		status := metav1.Status{}
 		_ = json.Unmarshal(result, &status)
+		if status.Code == 0 {
+			status.Code = statusErr.Status().Code
+		}
+		if len(status.Message) == 0 {
+			status.Message = string(result)
+		}
+
 		status.Reason = statusErr.Status().Reason
 		return &Err{StatusError: &errors.StatusError{ErrStatus: status}}
 	}
