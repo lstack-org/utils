@@ -9,7 +9,14 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/client-go/rest"
+
+	local "github.com/lstack-org/utils/pkg/rest"
 )
+
+//SkipLog 用于跳过打印本次范围k8s的日志
+func SkipLog(req *rest.Request) {
+	req.SetHeader(local.SkipLogHeaderKey, local.SkipLogHeaderValue)
+}
 
 //AsTable 用于指定k8s返回的数据格式为table格式
 func AsTable(req *rest.Request) {

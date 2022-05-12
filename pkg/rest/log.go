@@ -22,6 +22,11 @@ const (
 	reset   = "\033[0m"
 )
 
+const (
+	SkipLogHeaderKey   = "skipLog"
+	SkipLogHeaderValue = "true"
+)
+
 var (
 	logLevel     klog.Level = 7
 	baseLogLevel klog.Level = 6
@@ -63,8 +68,11 @@ func (l *logTrace) RoundTrip(request *http.Request) (*http.Response, error) {
 	}
 
 	response, err := l.delegatedRoundTripper.RoundTrip(request)
-
 	if response != nil {
+		if request.Header.Get(SkipLogHeaderKey) == SkipLogHeaderValue {
+			return response, err
+		}
+
 		var (
 			latency         = time.Since(start)
 			statusCode      = response.StatusCode

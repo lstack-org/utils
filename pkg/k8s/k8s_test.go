@@ -159,3 +159,26 @@ func TestTableClient(t *testing.T) {
 
 	t.Log(errors.IsNotFound(err)) //true
 }
+
+
+func TestSkipLog(t *testing.T) {
+	rest.SetLogLevel(0, 0)
+	clientConfig, err := clientcmd.NewClientConfigFromBytes([]byte(kubeConfig))
+	if err != nil {
+		t.Fatal(err)
+	}
+	restConfig, err := clientConfig.ClientConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	restConfig.Timeout = 10 * time.Second
+
+	client, err := NewClient(restConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = client.Resource(svcGroupVersionResource).Transform(SkipLog).Get("sdsd", nil, metav1.GetOptions{})
+	t.Log(err)
+}
