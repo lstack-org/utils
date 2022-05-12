@@ -127,3 +127,8 @@ func (r *Request) DoInto(ctx context.Context, into interface{}) error {
 	}
 	return json.Unmarshal(resp, into)
 }
+
+func (r *Request) SkipLog() *Request {
+	r.SetHeader(SkipLogHeaderKey, SkipLogHeaderValue)
+	return r
+}
