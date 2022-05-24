@@ -10,7 +10,7 @@ func TestAes(t *testing.T) {
 	key := "launcherSoNBPlus"
 	fmt.Println("原文：", orig)
 
-	encryptCode := AesEncrypt(orig, key)
+	encryptCode , _ := AesEncrypt(orig, key)
 	fmt.Println("密文：", encryptCode)
 
 	decryptCode := AesDecrypt(encryptCode, key)
