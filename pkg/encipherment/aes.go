@@ -5,12 +5,13 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/base64"
+	"errors"
 	"fmt"
 )
 
 // AesEncrypt 加密
 // key length must 16, 24, or 32 bytes to select
-func AesEncrypt(originalText string, key string) string {
+func AesEncrypt(originalText string, key string) (string, error) {
 	// 转成字节数组
 	originalData := []byte(originalText)
 	keyData := []byte(key)
@@ -18,7 +19,7 @@ func AesEncrypt(originalText string, key string) string {
 	// 分组密钥
 	block, err := aes.NewCipher(keyData)
 	if err != nil {
-		panic(fmt.Sprintf("key 长度必须 16/24/32长度: %s", err.Error()))
+		return "", errors.New(fmt.Sprintf("key 长度必须 16/24/32长度: %s", err.Error()))
 	}
 	// 获取密钥快长度
 	blockSize := block.BlockSize()
@@ -32,7 +33,7 @@ func AesEncrypt(originalText string, key string) string {
 	blockMode.CryptBlocks(encrypted, origData)
 	//使用RawURLEncoding 不要使用StdEncoding
 	//不要使用StdEncoding  放在url参数中回导致错误
-	return base64.RawURLEncoding.EncodeToString(encrypted)
+	return base64.RawURLEncoding.EncodeToString(encrypted), nil
 
 }
 
