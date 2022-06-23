@@ -8,7 +8,7 @@ import (
 )
 
 type Interface interface {
-	YamlsApply(ctx context.Context,manifest string) error
+	YamlsApply(ctx context.Context, manifest string) error
 	Resource(resource schema.GroupVersionResource) NamespaceableResourceInterface
 }
 

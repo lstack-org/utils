@@ -104,7 +104,6 @@ func (d *dynamicInterface) YamlsApply(ctx context.Context, manifest string) erro
 		actions  []gorun.BatchTaskAction
 	)
 
-	//资源类型校验
 	for index := range resouces {
 		var (
 			resource         = resouces[index]
