@@ -3,12 +3,15 @@ package k8s
 import (
 	"encoding/json"
 	"fmt"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"reflect"
 	"strings"
 
+	"helm.sh/helm/v3/pkg/releaseutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	metav1beta1 "k8s.io/apimachinery/pkg/apis/meta/v1beta1"
 	"k8s.io/client-go/rest"
+	"sigs.k8s.io/yaml"
 
 	local "github.com/lstack-org/utils/pkg/rest"
 )
@@ -55,4 +58,27 @@ func TableHandle(table *metav1beta1.Table, into interface{}) error {
 	}
 
 	return json.Unmarshal(bytes, into)
+}
+
+func ManifestToResouces(manifest string) []unstructured.Unstructured {
+	manifests := releaseutil.SplitManifests(manifest)
+	var objs []unstructured.Unstructured
+	for _, manifest := range manifests {
+		var u unstructured.Unstructured
+
+		if err := yaml.Unmarshal([]byte(manifest), &u); err != nil {
+			continue
+		}
+
+		if u.IsList() {
+			l, err := u.ToList()
+			if err != nil {
+				continue
+			}
+			objs = append(objs, l.Items...)
+			continue
+		}
+		objs = append(objs, u)
+	}
+	return objs
 }

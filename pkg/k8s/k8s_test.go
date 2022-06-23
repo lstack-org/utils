@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"context"
 	"github.com/lstack-org/utils/pkg/rest"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -160,7 +161,6 @@ func TestTableClient(t *testing.T) {
 	t.Log(errors.IsNotFound(err)) //true
 }
 
-
 func TestSkipLog(t *testing.T) {
 	rest.SetLogLevel(0, 0)
 	clientConfig, err := clientcmd.NewClientConfigFromBytes([]byte(kubeConfig))
@@ -181,4 +181,125 @@ func TestSkipLog(t *testing.T) {
 
 	err = client.Resource(svcGroupVersionResource).Transform(SkipLog).Get("sdsd", nil, metav1.GetOptions{})
 	t.Log(err)
+}
+
+const manifest = `
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wjf
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: wjf
+  template:
+    metadata:
+      labels:
+        run: wjf
+    spec:
+      containers:
+        - name: main
+          image: nginx:latest
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wjf
+  namespace: default
+spec:
+  selector:
+    run: wjf
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wjf
+  namespace: default
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: wjf
+            port:
+              number: 80
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wjf
+  namespace: default
+spec:
+  storageClassName: wjf
+  accessModes:
+    - RWO
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wjf
+  namespace: default
+data:
+  key: value
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: wjf
+  namespace: default
+# 请正确填写所需类型，如：
+# Opaque 用户定义的任意数据
+# kubernetes.io/service-account-token 服务账号令牌
+# kubernetes.io/dockercfg ~/.dockercfg 文件的序列化形式
+# kubernetes.io/dockerconfigjson ~/.docker/config.json 文件的序列化形式
+# kubernetes.io/basic-auth 用于基本身份认证的凭据
+# kubernetes.io/ssh-auth 用于 SSH 身份认证的凭据
+# kubernetes.io/tls 用于 TLS 客户端或者服务器端的数据
+# bootstrap.kubernetes.io/token 启动引导令牌数据
+# 更多信息可见文档：https://kubernetes.io/zh/docs/concepts/configuration/secret/
+type: kubernetes.io/dockercfg
+data:
+  .dockercfg: |
+        "<base64 encoded ~/.dockercfg file>"
+`
+
+func TestYamlsApply(t *testing.T) {
+	rest.SetLogLevel(0, 0)
+	clientConfig, err := clientcmd.NewClientConfigFromBytes([]byte(kubeConfig))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	restConfig, err := clientConfig.ClientConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	restConfig.Timeout = 10 * time.Second
+
+	client, err := NewClient(restConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = client.YamlsApply(context.TODO(), manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 }
