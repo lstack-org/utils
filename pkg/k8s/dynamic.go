@@ -4,7 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"k8s.io/client-go/discovery"
+	"k8s.io/client-go/restmapper"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/lstack-org/utils/pkg/gorun"
@@ -65,6 +68,7 @@ func newClient(restConfig *rest.Config, customize *http.Client, fns ...ReqTransf
 		restClient.Client.Transport = local.NewLogTrace("k8s", tripper)
 	}
 	return &dynamicInterface{
+		restConfig:          restConfig,
 		restClient:          restClient,
 		transformRequestFns: fns,
 	}, nil
@@ -73,8 +77,60 @@ func newClient(restConfig *rest.Config, customize *http.Client, fns ...ReqTransf
 type ReqTransformFn func(req *rest.Request)
 
 type dynamicInterface struct {
+	restConfig          *rest.Config
 	restClient          *rest.RESTClient
 	transformRequestFns []ReqTransformFn
+	once                sync.Once
+	mapper              meta.RESTMapper
+}
+
+func (d *dynamicInterface) YamlsApply(ctx context.Context, manifest string) error {
+	var errOnce error
+	d.once.Do(func() {
+		discoveryClient := discovery.NewDiscoveryClientForConfigOrDie(d.restConfig)
+		apiGroups, err := restmapper.GetAPIGroupResources(discoveryClient)
+		if err != nil {
+			errOnce = err
+			return
+		}
+		d.mapper = restmapper.NewDiscoveryRESTMapper(apiGroups)
+	})
+	if errOnce != nil {
+		return errOnce
+	}
+
+	var (
+		resouces = ManifestToResouces(manifest)
+		actions  []gorun.BatchTaskAction
+	)
+
+	//资源类型校验
+	for index := range resouces {
+		var (
+			resource         = resouces[index]
+			groupVersionKind = schema.FromAPIVersionAndKind(resource.GetAPIVersion(), resource.GetKind())
+		)
+
+		actions = append(actions, func(ctx gorun.BatchContext) {
+			mapping, err := d.mapper.RESTMapping(schema.GroupKind{
+				Group: groupVersionKind.Group,
+				Kind:  groupVersionKind.Kind,
+			}, groupVersionKind.Version)
+			if err != nil {
+				ctx.AddError(err)
+				return
+			}
+
+			if mapping == nil {
+				ctx.AddError(fmt.Errorf("resource type %v not found", groupVersionKind))
+			} else {
+				ctx.AddError(d.Resource(mapping.Resource).Namespace(resource.GetNamespace()).Apply(&resource, nil))
+			}
+		})
+	}
+
+	_, err := gorun.Tasks(actions...).Await(ctx)
+	return err
 }
 
 func (d *dynamicInterface) Resource(resource schema.GroupVersionResource) NamespaceableResourceInterface {

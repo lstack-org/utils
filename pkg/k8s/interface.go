@@ -1,12 +1,14 @@
 package k8s
 
 import (
+	"context"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 type Interface interface {
+	YamlsApply(ctx context.Context,manifest string) error
 	Resource(resource schema.GroupVersionResource) NamespaceableResourceInterface
 }
 
