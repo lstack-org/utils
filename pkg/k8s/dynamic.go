@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/restmapper"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -84,23 +87,42 @@ type dynamicInterface struct {
 	mapper              meta.RESTMapper
 }
 
-func (d *dynamicInterface) YamlsApply(ctx context.Context, manifest string) error {
-	var errOnce error
+func (d *dynamicInterface) yamlsDo(ctx context.Context, reader io.Reader, do func(mapping *meta.RESTMapping, obj unstructured.Unstructured) error) error {
+	var (
+		sb       strings.Builder
+		buf      = make([]byte, 1024)
+		errCache error
+	)
+
+	//从reader中读取数据
+	for {
+		n, err := reader.Read(buf)
+		if err != nil {
+			if err != io.EOF {
+				return err
+			}
+			//gc
+			buf = nil
+			break
+		}
+		sb.Write(buf[:n])
+	}
+
 	d.once.Do(func() {
 		discoveryClient := discovery.NewDiscoveryClientForConfigOrDie(d.restConfig)
 		apiGroups, err := restmapper.GetAPIGroupResources(discoveryClient)
 		if err != nil {
-			errOnce = err
+			errCache = err
 			return
 		}
 		d.mapper = restmapper.NewDiscoveryRESTMapper(apiGroups)
 	})
-	if errOnce != nil {
-		return errOnce
+	if errCache != nil {
+		return errCache
 	}
 
 	var (
-		resouces = ManifestToResouces(manifest)
+		resouces = ManifestToResouces(sb.String())
 		actions  []gorun.BatchTaskAction
 	)
 
@@ -123,13 +145,32 @@ func (d *dynamicInterface) YamlsApply(ctx context.Context, manifest string) erro
 			if mapping == nil {
 				ctx.AddError(fmt.Errorf("resource type %v not found", groupVersionKind))
 			} else {
-				ctx.AddError(d.Resource(mapping.Resource).Namespace(resource.GetNamespace()).Apply(&resource, nil))
+				ctx.AddError(do(mapping, resource))
 			}
 		})
 	}
 
 	_, err := gorun.Tasks(actions...).Await(ctx)
 	return err
+}
+
+func (d *dynamicInterface) YamlsDelete(ctx context.Context, reader io.Reader) error {
+	return d.yamlsDo(ctx, reader, func(mapping *meta.RESTMapping, obj unstructured.Unstructured) error {
+		err := d.Resource(mapping.Resource).Namespace(obj.GetNamespace()).Delete(obj.GetName(), nil)
+		if err != nil {
+			//忽略资源不存在
+			if !errors.IsNotFound(err) {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+func (d *dynamicInterface) YamlsApply(ctx context.Context, reader io.Reader) error {
+	return d.yamlsDo(ctx, reader, func(mapping *meta.RESTMapping, obj unstructured.Unstructured) error {
+		return d.Resource(mapping.Resource).Namespace(obj.GetNamespace()).Apply(&obj, nil)
+	})
 }
 
 func (d *dynamicInterface) Resource(resource schema.GroupVersionResource) NamespaceableResourceInterface {

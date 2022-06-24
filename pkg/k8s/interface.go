@@ -2,13 +2,17 @@ package k8s
 
 import (
 	"context"
+	"io"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 )
 
 type Interface interface {
-	YamlsApply(ctx context.Context, manifest string) error
+	//YamlsApply 实现: kubectl apply -f
+	YamlsApply(ctx context.Context, reader io.Reader) error
+	//YamlsDelete 实现: kubectl delete -f
+	YamlsDelete(ctx context.Context, reader io.Reader) error
 	Resource(resource schema.GroupVersionResource) NamespaceableResourceInterface
 }
 

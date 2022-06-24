@@ -1,9 +1,11 @@
 package k8s
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"os"
 	"reflect"
 	"strings"
 
@@ -81,4 +83,26 @@ func ManifestToResouces(manifest string) []unstructured.Unstructured {
 		objs = append(objs, u)
 	}
 	return objs
+}
+
+type YamlsHandleType string
+
+const (
+	Apply  YamlsHandleType = "apply"
+	Delete YamlsHandleType = "delete"
+)
+
+func YamlsHandleFromPath(ctx context.Context, client Interface, path string, yamlsHandleType YamlsHandleType) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+
+	switch yamlsHandleType {
+	case Apply:
+		return client.YamlsApply(ctx, file)
+	case Delete:
+		return client.YamlsDelete(ctx, file)
+	}
+	panic("unknown yamls handle type: " + yamlsHandleType)
 }
