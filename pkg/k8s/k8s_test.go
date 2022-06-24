@@ -10,7 +10,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/client-go/tools/clientcmd"
-
 	"net/http"
 	"testing"
 	"time"
@@ -297,9 +296,39 @@ func TestYamlsApply(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = client.YamlsApply(context.TODO(), manifest)
+	//err = client.YamlsApply(context.TODO(), bytes.NewReader([]byte(manifest)))
+	//if err != nil {
+	//	//t.Fatal(err)
+	//}
+	//
+	//err = client.YamlsDelete(context.TODO(), bytes.NewBuffer([]byte(manifest)))
+	//if err != nil {
+	//	t.Fatal(err)
+	//}
+
+	//file, err := os.Open("manifest.yaml")
+	//if err != nil {
+	//	t.Fatal(err)
+	//}
+	//
+	//err = client.YamlsApply(context.TODO(), file)
+	//if err != nil {
+	//
+	//}
+	//
+	//file, _ = os.Open("manifest.yaml")
+	//err = client.YamlsDelete(context.TODO(), file)
+	//if err != nil {
+	//	t.Fatal(err)
+	//}
+
+	err = YamlsHandleFromPath(context.TODO(), client, "manifest.yaml", Apply)
+	if err != nil {
+
+	}
+
+	err = YamlsHandleFromPath(context.TODO(), client, "manifest.yaml", Delete)
 	if err != nil {
 		t.Fatal(err)
 	}
-
 }
