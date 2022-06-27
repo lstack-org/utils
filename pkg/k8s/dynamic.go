@@ -154,9 +154,11 @@ func (d *dynamicInterface) yamlsDo(ctx context.Context, reader io.Reader, do fun
 	return err
 }
 
-func (d *dynamicInterface) YamlsDelete(ctx context.Context, reader io.Reader) error {
+func (d *dynamicInterface) YamlsDelete(ctx context.Context, reader io.Reader, dryrun ...string) error {
 	return d.yamlsDo(ctx, reader, func(mapping *meta.RESTMapping, obj unstructured.Unstructured) error {
-		err := d.Resource(mapping.Resource).Namespace(obj.GetNamespace()).Delete(obj.GetName(), nil)
+		err := d.Resource(mapping.Resource).Namespace(obj.GetNamespace()).Delete(obj.GetName(), &metav1.DeleteOptions{
+			DryRun: dryrun,
+		})
 		if err != nil {
 			//忽略资源不存在
 			if !errors.IsNotFound(err) {
@@ -167,7 +169,7 @@ func (d *dynamicInterface) YamlsDelete(ctx context.Context, reader io.Reader) er
 	})
 }
 
-func (d *dynamicInterface) YamlsApply(ctx context.Context, reader io.Reader) error {
+func (d *dynamicInterface) YamlsApply(ctx context.Context, reader io.Reader, dryrun ...string) error {
 	return d.yamlsDo(ctx, reader, func(mapping *meta.RESTMapping, obj unstructured.Unstructured) error {
 		return d.Resource(mapping.Resource).Namespace(obj.GetNamespace()).Apply(&obj, nil)
 	})
@@ -291,7 +293,7 @@ func (d *dynamicClient) Patch(name string, pt types.PatchType, body, rcv interfa
 		SpecificallyVersionedParams(&options, dynamicParameterCodec, versionV1)), rcv)
 }
 
-func (d *dynamicClient) Apply(body, rcv interface{}, applyCheckFncs ...ApplyCheckFnc) error {
+func (d *dynamicClient) Apply(body, rcv interface{}, dryrun ...string) error {
 	bodyObj, err := meta.Accessor(body)
 	if err != nil {
 		return err
@@ -310,18 +312,13 @@ func (d *dynamicClient) Apply(body, rcv interface{}, applyCheckFncs ...ApplyChec
 				until.Cancel()
 			}
 		} else {
-			for _, fnc := range applyCheckFncs {
-				if err = fnc(&objectMeta); err != nil {
-					until.ErrorBreak(err)
-					return
-				}
-			}
-
 			bodyObj.SetResourceVersion(objectMeta.ResourceVersion)
 			//对应的资源存在，保存，用于后续判断是否要创建
 			until.ItemSave(objectMeta)
 			//执行update
-			err = d.Update(bodyObj, rcv, v1.UpdateOptions{})
+			err = d.Update(bodyObj, rcv, v1.UpdateOptions{
+				DryRun: dryrun,
+			})
 			if err != nil {
 				//若update返回冲突，则执行重试
 				if errors.IsConflict(err) {
@@ -343,7 +340,9 @@ func (d *dynamicClient) Apply(body, rcv interface{}, applyCheckFncs ...ApplyChec
 
 	//资源不存在
 	if item == nil {
-		return d.Create(bodyObj, rcv, v1.CreateOptions{})
+		return d.Create(bodyObj, rcv, v1.CreateOptions{
+			DryRun: dryrun,
+		})
 	}
 
 	return nil
