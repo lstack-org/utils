@@ -171,7 +171,7 @@ func (d *dynamicInterface) YamlsDelete(ctx context.Context, reader io.Reader, dr
 
 func (d *dynamicInterface) YamlsApply(ctx context.Context, reader io.Reader, dryrun ...string) error {
 	return d.yamlsDo(ctx, reader, func(mapping *meta.RESTMapping, obj unstructured.Unstructured) error {
-		return d.Resource(mapping.Resource).Namespace(obj.GetNamespace()).Apply(&obj, nil)
+		return d.Resource(mapping.Resource).Namespace(obj.GetNamespace()).Apply(&obj, nil, dryrun...)
 	})
 }
 

@@ -10,9 +10,11 @@ import (
 
 type Interface interface {
 	//YamlsApply 实现: kubectl apply -f
-	YamlsApply(ctx context.Context, reader io.Reader, dryrun... string) error
+	//dryrun  : 支持字段,All
+	YamlsApply(ctx context.Context, reader io.Reader, dryrun ...string) error
 	//YamlsDelete 实现: kubectl delete -f
-	YamlsDelete(ctx context.Context, reader io.Reader, dryrun... string) error
+	//dryrun  : 支持字段,All
+	YamlsDelete(ctx context.Context, reader io.Reader, dryrun ...string) error
 	Resource(resource schema.GroupVersionResource) NamespaceableResourceInterface
 }
 
@@ -34,7 +36,7 @@ type ResourceInterface interface {
 	//Patch 用于patch指定k8s资源,name，pt，body不能为空，rvc可以为nik
 	Patch(name string, pt types.PatchType, body, rcv interface{}, options metav1.PatchOptions) error
 	//Apply 用于创建或更新资源，当资源存在时，执行更新，不存在时，执行创建,body不能为空，rvc可以为空
-	Apply(body, rcv interface{}, dryrun... string) error
+	Apply(body, rcv interface{}, dryrun ...string) error
 	//CreateIfNotExist 用于创建指定资源，当资源已存在时，直接返回该资源，存到rcv中，不存在时，会执行创建，创建结果也会存到rcv中
 	CreateIfNotExist(body, rcv interface{}) error
 }

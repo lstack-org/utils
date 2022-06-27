@@ -92,7 +92,7 @@ const (
 	Delete YamlsHandleType = "delete"
 )
 
-func YamlsHandleFromPath(ctx context.Context, client Interface, path string, yamlsHandleType YamlsHandleType) error {
+func YamlsHandleFromPath(ctx context.Context, client Interface, path string, yamlsHandleType YamlsHandleType, dryrun ...string) error {
 	file, err := os.Open(path)
 	if err != nil {
 		return err
@@ -100,9 +100,9 @@ func YamlsHandleFromPath(ctx context.Context, client Interface, path string, yam
 
 	switch yamlsHandleType {
 	case Apply:
-		return client.YamlsApply(ctx, file)
+		return client.YamlsApply(ctx, file, dryrun...)
 	case Delete:
-		return client.YamlsDelete(ctx, file)
+		return client.YamlsDelete(ctx, file, dryrun...)
 	}
 	panic("unknown yamls handle type: " + yamlsHandleType)
 }
