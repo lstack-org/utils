@@ -322,12 +322,12 @@ func TestYamlsApply(t *testing.T) {
 	//	t.Fatal(err)
 	//}
 
-	err = YamlsHandleFromPath(context.TODO(), client, "manifest.yaml", Apply)
+	err = YamlsHandleFromPath(context.TODO(), client, "manifest.yaml", Apply,"All")
 	if err != nil {
 
 	}
 
-	err = YamlsHandleFromPath(context.TODO(), client, "manifest.yaml", Delete)
+	err = YamlsHandleFromPath(context.TODO(), client, "manifest.yaml", Delete,"All")
 	if err != nil {
 		t.Fatal(err)
 	}
