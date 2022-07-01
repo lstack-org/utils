@@ -171,7 +171,7 @@ func (d *dynamicInterface) YamlsDelete(ctx context.Context, reader io.Reader, dr
 
 func (d *dynamicInterface) YamlsApply(ctx context.Context, reader io.Reader, dryrun ...string) error {
 	return d.yamlsDo(ctx, reader, func(mapping *meta.RESTMapping, obj unstructured.Unstructured) error {
-		return d.Resource(mapping.Resource).Namespace(obj.GetNamespace()).Apply(&obj, nil, dryrun...)
+		return d.Resource(mapping.Resource).Namespace(obj.GetNamespace()).PatchApply(&obj, nil, dryrun...)
 	})
 }
 
@@ -282,15 +282,30 @@ func (d *dynamicClient) Patch(name string, pt types.PatchType, body, rcv interfa
 	if len(name) == 0 {
 		return fmt.Errorf("name is required")
 	}
-	bodyBytes, err := json.Marshal(body)
-	if err != nil {
-		return err
+	var (
+		bodyBytes []byte
+		err       error
+	)
+
+	switch body.(type) {
+	case []byte:
+		bodyBytes = body.([]byte)
+	default:
+		bodyBytes, err = json.Marshal(body)
+		if err != nil {
+			return err
+		}
 	}
+
 	return d.request(d.tryTransformRequest(d.restC.
 		Patch(pt).
 		AbsPath(d.makeURLSegments(name)...).
 		Body(bodyBytes).
 		SpecificallyVersionedParams(&options, dynamicParameterCodec, versionV1)), rcv)
+}
+
+func (d *dynamicClient) PatchApply(body, rcv interface{}, dryrun ...string) error {
+	return patchApply(d, body, rcv, dryrun...)
 }
 
 func (d *dynamicClient) Apply(body, rcv interface{}, dryrun ...string) error {
