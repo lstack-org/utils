@@ -1,6 +1,7 @@
 package k8s
 
 import (
+	"bytes"
 	"context"
 	"github.com/lstack-org/utils/pkg/rest"
 	v1 "k8s.io/api/core/v1"
@@ -322,13 +323,75 @@ func TestYamlsApply(t *testing.T) {
 	//	t.Fatal(err)
 	//}
 
-	err = YamlsHandleFromPath(context.TODO(), client, "manifest.yaml", Apply,"All")
+	err = YamlsHandleFromPath(context.TODO(), client, "manifest.yaml", Apply)
 	if err != nil {
 
 	}
 
-	err = YamlsHandleFromPath(context.TODO(), client, "manifest.yaml", Delete,"All")
+	err = YamlsHandleFromPath(context.TODO(), client, "manifest.yaml", Delete)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
+
+const (
+	s = `
+apiVersion: v1
+kind: Service
+metadata:
+  name: wjf
+  namespace: default
+spec:
+  selector:
+    run: wjf
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+`
+	b = `
+apiVersion: v1
+kind: Service
+metadata:
+  name: wjf
+  namespace: default
+spec:
+  selector:
+    run: wjf
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8099
+`
+)
+
+func TestPatchApply(t *testing.T) {
+	rest.SetLogLevel(0, 0)
+	clientConfig, err := clientcmd.NewClientConfigFromBytes([]byte(kubeConfig))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	restConfig, err := clientConfig.ClientConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	restConfig.Timeout = 10 * time.Second
+
+	client, err := NewClient(restConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = client.YamlsApply(context.TODO(), bytes.NewReader([]byte(s)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = client.YamlsApply(context.TODO(), bytes.NewReader([]byte(b)))
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
