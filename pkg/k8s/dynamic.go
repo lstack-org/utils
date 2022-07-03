@@ -156,9 +156,17 @@ func (d *dynamicInterface) yamlsDo(ctx context.Context, reader io.Reader, do fun
 
 func (d *dynamicInterface) YamlsDelete(ctx context.Context, reader io.Reader, dryrun ...string) error {
 	return d.yamlsDo(ctx, reader, func(mapping *meta.RESTMapping, obj unstructured.Unstructured) error {
-		err := d.Resource(mapping.Resource).Namespace(obj.GetNamespace()).Delete(obj.GetName(), &metav1.DeleteOptions{
-			DryRun: dryrun,
-		})
+		var err error
+		if mapping.Scope.Name() == meta.RESTScopeNameRoot {
+			err = d.Resource(mapping.Resource).Delete(obj.GetName(), &metav1.DeleteOptions{
+				DryRun: dryrun,
+			})
+		} else {
+			err = d.Resource(mapping.Resource).Namespace(obj.GetNamespace()).Delete(obj.GetName(), &metav1.DeleteOptions{
+				DryRun: dryrun,
+			})
+		}
+
 		if err != nil {
 			//忽略资源不存在
 			if !errors.IsNotFound(err) {
@@ -171,7 +179,11 @@ func (d *dynamicInterface) YamlsDelete(ctx context.Context, reader io.Reader, dr
 
 func (d *dynamicInterface) YamlsApply(ctx context.Context, reader io.Reader, dryrun ...string) error {
 	return d.yamlsDo(ctx, reader, func(mapping *meta.RESTMapping, obj unstructured.Unstructured) error {
-		return d.Resource(mapping.Resource).Namespace(obj.GetNamespace()).PatchApply(&obj, nil, dryrun...)
+		if mapping.Scope.Name() == meta.RESTScopeNameRoot {
+			return d.Resource(mapping.Resource).PatchApply(&obj, nil, dryrun...)
+		} else {
+			return d.Resource(mapping.Resource).Namespace(obj.GetNamespace()).PatchApply(&obj, nil, dryrun...)
+		}
 	})
 }
 
