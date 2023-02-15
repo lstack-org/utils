@@ -16,14 +16,14 @@ type obsClientImpl struct {
 	BucketName string
 }
 
-// NewObsClient
+// newObsClient
 /**
  * 功能描述：初始化obs客户端
  * @author KangXu
  * @param cloudVendors 云服务商信息
  * @return *obsClientImpl, error
  */
-func NewObsClient(cloudVendors *CloudVendors) (*obsClientImpl, error) {
+func newObsClient(cloudVendors *CloudVendors) (*obsClientImpl, error) {
 	// 创建ObsClient结构体
 	client, err := obs.New(cloudVendors.Ak, cloudVendors.Sk, cloudVendors.Endpoint)
 	if err != nil {

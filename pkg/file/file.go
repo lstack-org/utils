@@ -36,9 +36,9 @@ const (
 func InitCloudClient(cloudVendors *CloudVendors) (client Client, err error) {
 	switch cloudVendors.ServerType {
 	case ServerTypeAliyun:
-		client, err = NewOssClient(cloudVendors)
+		client, err = newOssClient(cloudVendors)
 	case ServerTypeHuaweiyun:
-		client, err = NewObsClient(cloudVendors)
+		client, err = newObsClient(cloudVendors)
 	default:
 		return nil, errors.NewBadRequest("unsupported client")
 	}

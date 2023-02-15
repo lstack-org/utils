@@ -14,14 +14,14 @@ type ossClientImpl struct {
 	BucketName string
 }
 
-// NewOssClient
+// newOssClient
 /**
  * 功能描述：初始化oss客户端
  * @author KangXu
  * @param cloudVendors 云服务商信息
  * @return *ossClientImpl, error
  */
-func NewOssClient(cloudVendors *CloudVendors) (*ossClientImpl, error) {
+func newOssClient(cloudVendors *CloudVendors) (*ossClientImpl, error) {
 	// 创建OSSClient实例
 	client, err := oss.New("https://"+cloudVendors.Endpoint, cloudVendors.Ak, cloudVendors.Sk)
 	if err != nil {
