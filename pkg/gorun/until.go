@@ -47,6 +47,7 @@ type Until interface {
 	Cancel()
 	Retry(err error, maxRetryTime int)
 	ErrorBreak(err error)
+	Ctx() context.Context
 }
 
 var _ Until = &defaultUntil{}
@@ -59,6 +60,11 @@ type defaultUntil struct {
 	latestError, breakError error
 	ctx                     context.Context
 	cancelFunc              context.CancelFunc
+}
+
+// Ctx 返回until中使用的上下文ctx
+func (d *defaultUntil) Ctx() context.Context {
+	return d.ctx
 }
 
 //Retry 当期待的条件不满足时，可以继续执行该任务，
